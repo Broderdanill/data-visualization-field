@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0",
+  "name": "dynamic.rest.fetch",
+  "label": "Dynamic REST Fetch",
+  "entryPoint": "index.html",
+  "version": "1.0",
+  "parameters": [
+    {
+      "name": "urlField",
+      "label": "Field name containing URL",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "targetField",
+      "label": "Target Field ID",
+      "type": "number",
+      "required": true
+    }
+  ]
+}
