@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0",
+  "name": "chart.data.viewer",
+  "label": "Chart Data Viewer",
+  "entryPoint": "index.html",
+  "version": "1.0",
+  "parameters": [
+    { "name": "formName", "label": "Form Name", "type": "string", "required": true },
+    { "name": "qualification", "label": "Qualification", "type": "string", "required": false },
+    { "name": "groupField", "label": "Group Field", "type": "string", "required": true },
+    { "name": "chartType", "label": "Chart Type", "type": "string", "required": false },
+    { "name": "title", "label": "Chart Title", "type": "string", "required": false }
+  ]
+}

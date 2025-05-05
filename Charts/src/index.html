@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AR Chart Viewer</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    body { font-family: Arial; margin: 0; padding: 10px; }
+    #chartContainer { width: 100%; height: 80vh; }
+  </style>
+</head>
+<body>
+  <canvas id="myChart"></canvas>
+
+  <script>
+    ARQualLoad = function(parameters) {
+      const formName = parameters["formName"];
+      const qualification = parameters["qualification"] || "1=1";
+      const groupField = parameters["groupField"];
+      const chartType = parameters["chartType"] || "bar";
+      const chartTitle = parameters["title"] || "AR Chart";
+
+      if (!formName || !groupField) {
+        document.body.innerHTML = "<b>Missing required parameters: formName or groupField</b>";
+        return;
+      }
+
+      ARGetListEntryWithFields(formName, qualification, 0, 1000, [groupField],
+        function(entries) {
+          const counts = {};
+          entries.forEach(entry => {
+            const val = entry[groupField] || "(empty)";
+            counts[val] = (counts[val] || 0) + 1;
+          });
+
+          const labels = Object.keys(counts);
+          const data = Object.values(counts);
+
+          const ctx = document.getElementById('myChart').getContext('2d');
+          new Chart(ctx, {
+            type: chartType,
+            data: {
+              labels: labels,
+              datasets: [{
+                label: chartTitle,
+                data: data,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)'
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                title: {
+                  display: true,
+                  text: chartTitle
+                },
+                legend: {
+                  display: chartType !== 'bar'
+                }
+              }
+            }
+          });
+        },
+        function(err) {
+          document.body.innerHTML = "<b>Error loading data:</b><br>" + err.message;
+        }
+      );
+    };
+  </script>
+</body>
+</html>
