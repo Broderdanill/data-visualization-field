@@ -35,3 +35,9 @@ This Data Visualization Field allows you to fetch any AR REST API (or external) 
    - targetField = the ID of your result field
 4. Ensure both fields exist in the PV
 5. Open the form in Mid Tier and test
+
+
+
+
+
+{ "urlField": "536870913", "targetField": "536870914" }
