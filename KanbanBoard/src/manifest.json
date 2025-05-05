@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0",
+  "name": "kanban.board.viewer",
+  "label": "Kanban Board Viewer",
+  "entryPoint": "index.html",
+  "version": "3.0",
+  "parameters": [
+    { "name": "formName", "label": "Form Name", "type": "string", "required": true },
+    { "name": "lanes", "label": "Swimlanes JSON", "type": "string", "required": true },
+    { "name": "titleField", "label": "Title Field", "type": "string", "required": true },
+    { "name": "updateField", "label": "Field to Update", "type": "string", "required": true },
+    { "name": "cardFields", "label": "Additional Fields on Card", "type": "string", "required": false },
+    { "name": "thumbnailField", "label": "Thumbnail URL Field", "type": "string", "required": false },
+    { "name": "colorField", "label": "Card Background Color Field", "type": "string", "required": false }
+  ]
+}
