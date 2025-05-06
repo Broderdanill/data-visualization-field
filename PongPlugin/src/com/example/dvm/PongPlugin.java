@@ -8,6 +8,6 @@ public class PongPlugin {
 
     public void processRequest(HttpServletRequest req, HttpServletResponse res) throws IOException {
         res.setContentType("application/json;charset=UTF-8");
-        res.getWriter().write("{\"message\": \"pong from DVM\"}");
+        res.getWriter().write("{\"message\": \"pong\"}");
     }
 }
