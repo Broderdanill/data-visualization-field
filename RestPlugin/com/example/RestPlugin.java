@@ -1,5 +1,7 @@
 package com.example;
 
+
+
 import com.remedy.arsys.plugincontainer.Definition;
 import com.remedy.arsys.plugincontainer.DefinitionFactory;
 import com.remedy.arsys.plugincontainer.DefinitionKey;
@@ -10,24 +12,31 @@ import com.remedy.arsys.plugincontainer.PluginConfig;
 import java.io.PrintWriter;
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 public class RestPlugin implements Plugin {
 
     @Override
     public void processRequest(PluginContext pc) throws IOException {
         String path = pc.getRequest().getPathInfo();
-
-        if ("/params".equals(path)) {
+        System.out.println("RestPlugin processRequest path: " + path);
+    
+        if (path != null && path.contains("params")) {
             pc.getResponse().setContentType("application/json");
             PrintWriter out = pc.getResponse().getWriter();
-            out.print("{ \"name\": \"RestPlugin\", \"version\": \"1.0.0\" }");
+            out.print("{");
+            out.print("\"name\": \"RestFetch\",");
+            out.print("\"version\": \"1.0.0\",");
+            out.print("\"type\": \"Visualizer\",");
+            out.print("\"description\": \"REST Fetch test plugin\",");
+            out.print("\"author\": \"AR Plugin\",");
+            out.print("\"parameters\": [\"urlField\", \"targetField\"]");
+            out.print("}");
             return;
         }
-
+    
+        // Standard rendering för DVF (iframe-innehåll)
         pc.getResponse().setContentType("text/html;charset=UTF-8");
         PrintWriter out = pc.getResponse().getWriter();
         out.println("<html><head><script>");
@@ -40,7 +49,7 @@ public class RestPlugin implements Plugin {
 
     @Override
     public String handleEvent(PluginContext pc, String eventType, String eventData) {
-        if (!eventType.equals("FetchURL")) return "";
+        if (!"FetchURL".equals(eventType)) return "";
         String json = callExternalAPI(eventData);
         String escaped = json.replace("\"", "\\\\\"");
         return "EventDispatcher.sendEventToParent(\"RestResult\", \"" + escaped + "\");";
@@ -50,7 +59,7 @@ public class RestPlugin implements Plugin {
         try (InputStream in = new URL(url).openStream()) {
             return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            return "{\"error\": \"" + e.getMessage() + "\"}";
+            return "{\"error\": \"" + e.getMessage().replace("\"", "\\\"") + "\"}";
         }
     }
 
@@ -62,39 +71,14 @@ public class RestPlugin implements Plugin {
 
     @Override
     public DefinitionFactory getDefinitionFactory() {
-        return new DummyFactory();
-    }
+        return new DefinitionFactory() {
+            public Definition createFromString(PluginContext context, DefinitionKey key, String defJson) throws IOException {
+                return null;
+            }
 
-    // Inkluderad intern klass
-    private static class DummyFactory implements DefinitionFactory {
-        @Override
-        public Definition createFromString(PluginContext context, DefinitionKey key, String defJson) {
-            return null;
-        }
-
-        @Override
-        public Definition createFromStream(PluginContext context, DefinitionKey key, InputStream stream) {
-            return null;
-        }
-
-        @Override
-        public String serializeToString(PluginContext context, DefinitionKey key, Definition def) {
-            return "";
-        }
-
-        @Override
-        public InputStream serializeToStream(PluginContext context, DefinitionKey key, Definition def) {
-            return new ByteArrayInputStream(new byte[0]);
-        }
-
-        @Override
-        public Map getSkinDefinition() {
-            return null;
-        }
-
-        @Override
-        public Map getInstanceDefinition() {
-            return null;
-        }
+            public Definition createFromStream(PluginContext context, DefinitionKey key, InputStream stream) throws IOException {
+                return null;
+            }
+        };
     }
 }
