@@ -1,22 +1,31 @@
-
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Dynamic REST Fetch</title>
+  <title>REST Fetch Module</title>
   <style>
     body { font-family: Arial; font-size: 14px; padding: 10px; }
   </style>
 </head>
 <body>
-  <div id="status">Waiting for data...</div>
+  <div id="status">Waiting for fetch...</div>
   <script>
-    ARQualLoad = function(parameters) {
-      const url = ARFieldGetValue(parameters.urlField);
-      const targetId = parseInt(parameters.targetField);
+    function ARQualLoad(params) {
+      let url, targetField;
+      try {
+        let obj = JSON.parse(params);
+        url = obj.url;
+        targetField = obj.returnFieldId;
+      } catch (e) {
+        params.split(",").forEach(pair => {
+          let [key, val] = pair.split("=");
+          if (key.trim().toLowerCase() === "url") url = val;
+          if (key.trim().toLowerCase() === "returnfieldid") targetField = val;
+        });
+      }
 
-      if (!url || isNaN(targetId)) {
-        document.getElementById("status").textContent = "Missing parameters or invalid config.";
+      if (!url || !targetField) {
+        document.getElementById("status").textContent = "Invalid or missing parameters.";
         return;
       }
 
@@ -24,20 +33,19 @@
         headers: { "Content-Type": "application/json" },
         credentials: "include"
       })
-      .then(res => {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
+      .then(response => {
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        return response.json();
       })
-      .then(json => {
-        const output = typeof json === "object" ? JSON.stringify(json) : String(json);
-        ARFieldSetValue(targetId, output);
-        document.getElementById("status").textContent = "Result loaded successfully.";
+      .then(data => {
+        const jsonString = JSON.stringify(data);
+        ARFieldSetValue(parseInt(targetField), jsonString);
+        document.getElementById("status").textContent = "Data loaded successfully.";
       })
-      .catch(err => {
-        ARFieldSetValue(targetId, "ERROR: " + err.message);
-        document.getElementById("status").textContent = "Failed: " + err.message;
+      .catch(error => {
+        document.getElementById("status").textContent = "Error: " + error.message;
       });
-    };
+    }
   </script>
 </body>
 </html>
