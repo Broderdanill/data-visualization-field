@@ -1,0 +1,10 @@
+<html><head>
+  <script type="text/javascript">
+    EventDispatcher.setParentOrigin(window.location.origin);
+    EventDispatcher.subscribe("TriggerFetch", function(url) {
+      EventDispatcher.sendEventToMidTier("FetchURL", url).then(js => eval(js));
+    });
+  </script>
+</head>
+<body>Waiting...</body>
+</html>
