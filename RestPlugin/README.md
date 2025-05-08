@@ -31,4 +31,8 @@ Om du istället får:
 EventDispatcher.sendEventToDVF(536870924, "TriggerFetch", "https://jsonplaceholder.typicode.com/todos/1");
 
 # Custom Properties
-{ "urlField": 536870913, "targetField": 536870914 }
+{ "urlField": "536870913", "targetField": "536870914"}
+
+
+
+http://localhost:8080/arsys/plugins/Visualizer/params?server=arserver&flashboard=RestFetchDef&name=RestFetchDef&height=305&width=832&rtl=ltr&fieldid=536870924&windowID=0&schema=DVF_PV&view=pv&isProgressiveView=true

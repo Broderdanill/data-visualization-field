@@ -1,25 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>REST Fetch</title>
-  <script>
-    ARQualLoad = function(params) {
-      const url = ARFieldGetValue(params.urlField);
-      const target = parseInt(params.targetField);
-      if (!url || isNaN(target)) {
-        ARFieldSetValue(target, "Missing or invalid URL");
-        return;
-      }
-
-      fetch(url)
-        .then(resp => resp.text())
-        .then(text => ARFieldSetValue(target, text))
-        .catch(err => ARFieldSetValue(target, "Fetch error: " + err.message));
-    };
+  <script type="text/javascript">
+    parent.postMessage("Hello from DVF", "*");
   </script>
 </head>
 <body>
-  <div>REST Fetch plugin loaded...</div>
+  <div>Hello from RestFetch Visualizer</div>
 </body>
 </html>
