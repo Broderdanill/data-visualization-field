@@ -9,3 +9,14 @@ jar tf RestPlugin.jar | grep RestPlugin.class
 
     Shoud respond with:
     com/example/RestPlugin.class
+
+
+Om du istället får:
+
+    404: plugin inte laddad.
+
+    500: kodfel i processRequest.
+
+
+# Custom Properties
+{ "urlField": 536870913, "targetField": 536870914 }
