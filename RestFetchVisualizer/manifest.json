@@ -1,0 +1,9 @@
+{
+  "name": "RestFetch",
+  "version": "1.0.0",
+  "type": "Visualizer",
+  "description": "REST fetch test",
+  "author": "AR Plugin",
+  "main": "index.html",
+  "parameters": ["urlField", "targetField"]
+}

@@ -1,0 +1,1080 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app PUBLIC '-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN' 'http://java.sun.com/dtd/web-app_2_3.dtd'>
+<!--
+ Copyright (c) 2015 BMC Software, Inc.
+ All rights reserved.
+ This software is the confidential and proprietary information of 
+ BMC Software, Inc ("Confidential Information"). You shall not 
+ disclose such Confidential Information and shall use it only in
+ accordance with the terms of the license agreement between 
+ you and BMC Software, Inc. 
+-->
+<!--
+The web-app element is the root of the deployment descriptor for a web application
+<!ELEMENT web-app (icon?, display-name?, description?, distributable?,
+context-param*, servlet*, servlet-mapping*, session-config?,
+mime-mapping*, welcome-file-list?, error-page*, taglib*,
+resource-ref*, security-constraint*, login-config?, security-role*,
+env-entry*, ejb-ref*)>
+-->
+<web-app>
+	<display-name>BMC Remedy AR System</display-name><distributable/>
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:/META-INF/applicationContext.xml</param-value>
+    </context-param>
+   <!-- Flag whether the report resources can only be accessed under the working folder. Defaults to true -->
+   <context-param>
+      <param-name>WORKING_FOLDER_ACCESS_ONLY</param-name>
+      <param-value>false</param-value>
+   </context-param>
+   <!-- Report engine log level -->
+   <context-param>
+      <param-name>BIRT_VIEWER_LOG_LEVEL</param-name>
+      <param-value>WARNING</param-value>
+   </context-param>
+   <!-- Defines the BIRT viewer configuration file -->
+   <context-param>
+      <param-name>BIRT_VIEWER_CONFIG_FILE</param-name>
+      <param-value>WEB-INF/viewer.properties</param-value>
+   </context-param>
+   <!-- Flag whether to allow server-side printing. Possible values are "ON" and "OFF". Defaults to "ON". -->
+   <context-param>
+      <param-name>BIRT_VIEWER_PRINT_SERVERSIDE</param-name>
+      <param-value>OFF</param-value>
+   </context-param>
+   <!-- Flag whether to force browser-optimized HTML output. Defaults to true -->
+   <context-param>
+      <param-name>HTML_ENABLE_AGENTSTYLE_ENGINE</param-name>
+      <param-value>true</param-value>
+   </context-param>
+   <!-- Filename generator class/factory to use for the exported reports. -->
+   <context-param>
+      <param-name>BIRT_FILENAME_GENERATOR_CLASS</param-name>
+      <param-value>org.eclipse.birt.report.utility.filename.DefaultFilenameGenerator</param-value>
+   </context-param>
+    <!-- ProxyFilter: used to make HTTP Repsonse Location header value a relative URL.  Useful, for example, when a proxy does not have reverse proxy capability.
+            NOTE: If this filter is activated/uncommented it must be the first active filter defined in web.xml to ensure all forms of URLs mid-tier uses are properly adjusted.
+            NOTE: If this filter is activated/uncommented, the matching <fitler-mapping> must also be activated/uncommented (located further down in the file)
+    -->
+<!--
+    <filter>
+        <filter-name>ProxyFilter</filter-name>
+        <filter-class>com.remedy.arsys.stubs.ProxyFilter</filter-class>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>ProxyFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+-->
+    <!-- UTF8Encoder: NOTE: This must be the first filter listed, with the only exception being the ProxyFilter (if activated) -->
+    <filter>
+        <filter-name>UTF8Encoder</filter-name>
+        <filter-class>com.remedy.arsys.support.UTF8EncodingFilter</filter-class>
+		<async-supported>true</async-supported>
+		<init-param>
+			<param-name>dummy</param-name>
+			<param-value>0</param-value>
+		</init-param>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>UTF8Encoder</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    
+    <filter>
+      <filter-name>UrlRewriteFilter</filter-name>
+      <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
+	  <async-supported>true</async-supported>
+        <!-- set the amount of seconds the conf file will be checked for reload
+        can be a valid integer (0 denotes check every time,
+        -1 denotes no reload check, default -1) -->
+        <init-param>
+            <param-name>confReloadCheckInterval</param-name>
+            <param-value>60</param-value>
+        </init-param>
+        <!-- if you need to the conf file path can be changed
+        it is specified as a path relative to the root of your context
+        (default /WEB-INF/urlrewrite.xml) -->
+        <init-param>
+            <param-name>confPath</param-name>
+            <param-value>/WEB-INF/urlrewrite.xml</param-value>
+        </init-param>
+        <!-- sets up log level (will be logged to context log)
+        can be: slf4j, TRACE, DEBUG, INFO (default), WARN, ERROR, FATAL,
+        sysout:{level} (ie, sysout:DEBUG)
+        if you are having trouble using normal levels use sysout:DEBUG
+        (default WARN) -->
+        <init-param>
+            <param-name>logLevel</param-name>
+            <param-value>WARN</param-value>
+        </init-param>
+        <!-- you can change status path so that it does not
+        conflict with your installed apps (note, defaults
+        to /rewrite-status) note, must start with / -->
+        <init-param>
+            <param-name>statusPath</param-name>
+            <param-value>/status</param-value>
+        </init-param>
+        <!-- you can disable status page if desired
+        can be: true, false (default true) -->
+        <init-param>
+            <param-name>statusEnabled</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <!-- you may want to allow more hosts to look at the status page
+        statusEnabledOnHosts is a comma delimited list of hosts, * can
+        be used as a wildcard (defaults to "localhost, local, 127.0.0.1") -->
+        <init-param>
+            <param-name>statusEnabledOnHosts</param-name>
+            <param-value>localhost</param-value>
+        </init-param>
+        <!-- defaults to false. use mod_rewrite style configuration file (if this is true and confPath
+        is not specified confPath will be set to /WEB-INF/.htaccess) -->
+        <init-param>
+            <param-name>modRewriteConf</param-name>
+            <param-value>false</param-value>
+        </init-param>
+        <!-- load mod_rewrite style configuration from this parameter's value.
+                note, Setting this parameter will mean that all other conf parameters are ignored.
+            <init-param>
+                <param-name>modRewriteConfText</param-name>
+                <param-value>
+                    RewriteRule ^/~([^/]+)/?(.*) /u/$1/$2 [R]
+                    RewriteRule ^/([uge])/([^/]+)$ /$1/$2/ [R]
+                </param-value>
+            </init-param>
+        -->
+        <!-- defaults to false. allow conf file to be set by calling /rewrite-status/?conf=/WEB-INF/urlrewrite2.xml
+                designed to be used for testing only
+            <init-param>
+                <param-name>allowConfSwapViaHttp</param-name>
+                <param-value>false</param-value>
+            </init-param>
+        -->
+    </filter>
+    <filter-mapping>
+      <filter-name>UrlRewriteFilter</filter-name>
+      <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    <filter>
+        <filter-name>RESTAuthValidator</filter-name>
+        <filter-class>com.remedy.arsys.rest.auth.RESTAuthValidator</filter-class>
+		<async-supported>true</async-supported>
+    </filter>
+    <filter-mapping>
+        <filter-name>RESTAuthValidator</filter-name>
+        <url-pattern>/web/*</url-pattern>
+    </filter-mapping>
+	
+	<filter>
+        <filter-name>GZipFilter</filter-name>
+        <filter-class>com.remedy.arsys.rest.auth.GZipFilter</filter-class>
+    </filter>
+	<filter-mapping>
+		<filter-name>GZipFilter</filter-name>
+		<url-pattern>/pwa/*</url-pattern>
+	</filter-mapping>
+    <filter-mapping>
+		 <filter-name>GZipFilter</filter-name>
+		 <url-pattern>/pwa/assets/css/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		 <filter-name>GZipFilter</filter-name>
+		 <url-pattern>/pwa/assets/fonts/OpenSans/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		 <filter-name>GZipFilter</filter-name>
+		 <url-pattern>/pwa/assets/i18n/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		 <filter-name>GZipFilter</filter-name>
+		 <url-pattern>/pwa/assets/icons/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		 <filter-name>GZipFilter</filter-name>
+		 <url-pattern>/pwa/assets/images/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		 <filter-name>GZipFilter</filter-name>
+		 <url-pattern>/pwa/assets/js/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		 <filter-name>GZipFilter</filter-name>
+		 <url-pattern>/pwa/assets/locale/*</url-pattern>
+	</filter-mapping>
+	
+	<!-- consumed by automation team for logging client side workflow logs to form -->
+	<filter>
+        <filter-name>LOGWRKFLFORM</filter-name>
+        <filter-class>com.remedy.arsys.stubs.WorkflowLogFilter</filter-class>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>LOGWRKFLFORM</filter-name>
+        <url-pattern>/logwrkflo/*</url-pattern>
+    </filter-mapping>
+    <filter>
+        <filter-name>AXISSECURFILTER</filter-name>
+        <filter-class>com.remedy.arsys.stubs.AxisSecurFilter</filter-class>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>AXISSECURFILTER</filter-name>
+        <url-pattern>/services/*</url-pattern>
+    </filter-mapping>
+    
+    <filter>
+        <filter-name>BirtSecurityFilter</filter-name>
+        <filter-class>com.remedy.arsys.arwebreport.BirtSecurityFilter</filter-class>
+        <init-param>
+            <param-name>blocked-params</param-name>
+            <param-value>__document</param-value>
+        </init-param>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>BirtSecurityFilter</filter-name>
+        <url-pattern>/frameset/*</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+        <filter-name>BirtSecurityFilter</filter-name>
+        <url-pattern>/run/*</url-pattern>
+    </filter-mapping>
+	
+    <filter-mapping>
+        <filter-name>BirtSecurityFilter</filter-name>
+        <url-pattern>/preview/*</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+        <filter-name>BirtSecurityFilter</filter-name>
+        <url-pattern>/download/*</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+        <filter-name>BirtSecurityFilter</filter-name>
+        <url-pattern>/parameter/*</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+        <filter-name>BirtSecurityFilter</filter-name>
+        <url-pattern>/document/*</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+        <filter-name>BirtSecurityFilter</filter-name>
+        <url-pattern>/output/*</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+        <filter-name>BirtSecurityFilter</filter-name>
+        <url-pattern>/extract/*</url-pattern>
+    </filter-mapping>
+<!-- 
+    <filter>
+        <filter-name>DebugFilter</filter-name>
+        <filter-class>com.remedy.arsys.stubs.DebugFilter</filter-class>
+            <init-param>
+	        <param-name>addresponsehostip</param-name>
+	        <param-value>true</param-value> 
+            </init-param>
+            <init-param>
+	        <param-name>jvmid</param-name>
+	        <param-value>jvm_1</param-value> 
+            </init-param>	  	
+            <init-param>
+	        <param-name>addprocesstimes</param-name>
+	        <param-value>true</param-value> 
+            </init-param>		  	
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>DebugFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+-->
+    <filter>
+        <filter-name>XSSFILTER</filter-name>
+        <filter-class>com.remedy.arsys.stubs.XSSFilter</filter-class>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>XSSFILTER</filter-name>
+        <url-pattern>/plugins/*</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+        <filter-name>XSSFILTER</filter-name>
+        <url-pattern>/pluginsignal/*</url-pattern>
+    </filter-mapping>
+    
+<!--
+    <filter>
+        <filter-name>HEADERVALIDFILTER</filter-name>
+        <filter-class>com.remedy.arsys.stubs.HeaderValidFilter</filter-class>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>HEADERVALIDFILTER</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+-->
+    <filter>
+        <filter-name>TENANCYFILTER</filter-name>
+        <filter-class>com.remedy.arsys.stubs.TenancyFilter</filter-class>
+		<async-supported>true</async-supported>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>TENANCYFILTER</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+	
+	<filter>
+        <filter-name>SecureCookieFilter</filter-name>
+        <filter-class>com.remedy.arsys.stubs.SecureCookieFilter</filter-class>
+		<async-supported>true</async-supported>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>SecureCookieFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+<!-- SameSiteCookieFilter (disabled by default. Uncomment to use.)
+		Valid mode param values:
+        	None - Send cookies to third-party context (requires "Secure" attribute. Use SecureCookieFilter)
+        	Lax - (default)
+        	Strict - Send cookies only to first-party context
+-->
+    <filter>
+        <filter-name>SameSiteCookieFilter</filter-name>
+        <filter-class>com.remedy.arsys.stubs.SameSiteCookieFilter</filter-class>
+		<async-supported>true</async-supported>
+        <init-param>
+			<param-name>mode</param-name>
+	        <param-value>Lax</param-value>
+        </init-param>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>SameSiteCookieFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    <filter>
+        <filter-name>ResponseTimeFilter</filter-name>
+        <filter-class>com.remedy.arsys.stubs.ResponseTimeFilter</filter-class>
+    </filter>
+    
+    <filter-mapping>
+         <filter-name>ResponseTimeFilter</filter-name>
+        <url-pattern>/forms/*</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+        <filter-name>ResponseTimeFilter</filter-name>
+        <url-pattern>/apps/*</url-pattern>
+    </filter-mapping>
+	
+    <filter-mapping>
+        <filter-name>ResponseTimeFilter</filter-name>
+        <url-pattern>/resources/*</url-pattern>
+    </filter-mapping>
+	
+    <filter-mapping>
+        <filter-name>ResponseTimeFilter</filter-name>
+        <url-pattern>/imagepool/*</url-pattern>
+    </filter-mapping>
+    
+    <filter>
+        <filter-name>BirtCacheFilter</filter-name>
+        <filter-class>com.remedy.arsys.arwebreport.BIRTCacheFilter</filter-class>
+        <init-param>
+            <param-name>cache</param-name>
+            <param-value>max-age=2592000</param-value>
+        </init-param>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>BirtCacheFilter</filter-name>
+        <url-pattern>/webcontent/birt/*</url-pattern>
+    </filter-mapping>
+    
+    <filter>
+        <filter-name>ViewerFilter</filter-name>
+        <filter-class>org.eclipse.birt.report.filter.ViewerFilter</filter-class>
+    </filter>
+   
+    <filter-mapping>
+        <filter-name>ViewerFilter</filter-name>
+        <servlet-name>ViewerServlet</servlet-name>
+    </filter-mapping>
+    
+    <filter-mapping>
+        <filter-name>ViewerFilter</filter-name>
+        <servlet-name>EngineServlet</servlet-name>
+    </filter-mapping>
+    
+    <!-- OriginAllowFilter: For added security to protect against cross-origin attacks 
+            Set the <param-value> to a (comma seperated) list of valid host names
+            For example: 
+            <param-value>mymidtier,mymidtier.bmc.com</param-value>
+    -->
+    <filter>
+        <filter-name>OriginAllowFilter</filter-name>
+        <filter-class>com.remedy.arsys.support.OriginAllowFilter</filter-class>
+		<async-supported>true</async-supported>
+        <init-param>
+            <param-name>origin-param</param-name>
+            <param-value></param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>OriginAllowFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    <!-- HttpSecurityHeaderFilter:
+            X-FRAME-OPTIONS: Set Security header for ClickJacking
+                1) No <param-name> defined, then default is enable header and set value="SAMEORIGIN"
+                2) Configure <param-name> "clickJackEnable" = "No", disables header
+            Strict-Transport-Security(HSTS): Set Security header for added security to protect against MIM attacks
+                1) No <param-name> defined, then default is enable header and set value="31536000"
+                2) Configure <param-name> "hstsEnable" = "No", disables header
+                3) <param-name> "hstsMaxAge" is essentially a "time to live" field for the HSTS header (secs)
+                <param-value>
+                "31536000"        -> Set to one year
+                "0"               -> Disable HSTS policy
+            X-Content-Type-Options: Set Security header for MIME Sniffing
+                1) No <param-name> defined, then default is enable header
+                2) Configure <param-name> "contentSniffEnable" = "No", disables header
+            X-XSS-Protection: response header is a feature that stops pages from loading when they detect 
+            reflected cross-site scripting (XSS) attacks.
+                1) No <param-name> defined, then default is enable header and set value="1;mode=block"
+                2) Configure <param-name> "xssProtectEnable" = "No", disables header
+                3) <param-name> "xssProtect" is configurable with values defined below:
+                <param-value>:
+                "0"                            -> Disables XSS filtering
+                "1"                            -> Enables XSS filtering, browser will sanitize the page on detection
+                "1; mode=block"                -> Enables XSS filtering, browser will prevent rendering of the page
+                "1; report=<reporting-uri>"    -> Enables XSS filtering, browser will sanitize the page and report the violation
+    -->
+    <filter>
+        <filter-name>HttpSecurityHeaderFilter</filter-name>
+        <filter-class>com.remedy.arsys.config.HttpSecurityHeaderFilter</filter-class>
+		<async-supported>true</async-supported>
+    </filter>
+	
+    <filter-mapping>
+        <filter-name>HttpSecurityHeaderFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+	<!-- XSSProtectFilterFromList: protect-param is list of host names with , seprated -->
+<!--  
+    <filter>
+        <filter-name>XSSProtectFilterFromList</filter-name>
+        <filter-class>com.remedy.arsys.config.XSSProtectFilterFromList</filter-class>
+        <init-param>
+            <param-name>protect-param</param-name>
+            <param-value></param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>XSSProtectFilterFromList</filter-name>
+        <url-pattern>/shared/config/*</url-pattern>
+    </filter-mapping>
+-->
+    <filter>
+        <filter-name>BIRTImageFilter</filter-name>
+        <filter-class>com.remedy.arsys.arwebreport.BIRTImageFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>BIRTImageFilter</filter-name>
+        <url-pattern>/preview/*</url-pattern>
+    </filter-mapping>
+    
+    <filter>
+        <filter-name>ProxySessionTimeoutFilter</filter-name>
+        <filter-class>com.remedy.arsys.stubs.ProxySessionTimeoutFilter</filter-class>
+		<async-supported>true</async-supported>
+    </filter>
+    
+    <filter-mapping>
+        <filter-name>ProxySessionTimeoutFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>CSPHeaderFilter</filter-name>
+        <filter-class>com.remedy.arsys.stubs.GenericHeaderFilter</filter-class>
+        <init-param>
+            <param-name>header-name</param-name>
+            <param-value>Content-Security-Policy</param-value>
+        </init-param>
+        <init-param>
+            <param-name>header-value</param-name>
+            <param-value>default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src *; frame-ancestors *;</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>CSPHeaderFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <listener>
+        <listener-class>com.remedy.arsys.share.ApplicationContextListener</listener-class>
+    </listener>
+	
+	<listener>
+        <listener-class>com.remedy.arsys.stubs.HttpRequestListener</listener-class>
+    </listener>
+    <listener>
+        <listener-class>org.eclipse.birt.report.listener.ViewerServletContextListener</listener-class>
+    </listener>
+    <listener>
+        <listener-class>org.eclipse.birt.report.listener.ViewerHttpSessionListener</listener-class>
+    </listener>
+    <listener>
+        <listener-class>com.remedy.arsys.stubs.ReleaseSessionData</listener-class>
+    </listener>
+    
+    <listener>
+        <listener-class>com.remedy.arsys.stubs.SessionListener</listener-class>
+    </listener>
+    
+    <listener>
+        <listener-class>com.remedy.arsys.share.ServiceLocator</listener-class>
+    </listener>
+    
+    <servlet>
+        <servlet-name>SetupServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.SetupServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>ResponseTimeServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.ResponseTimeFilter</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>LoginServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.session.LoginServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>LogoutServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.session.LogoutServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>LicenseReleaseServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.session.LicenseReleaseServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ConfigServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.config.ConfigServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>GoatConfigServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.GoatConfigServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ReportServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.ReportServlet</servlet-class>
+    </servlet>
+	
+    <servlet>
+        <servlet-name>ReportShareServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.aryfreport.ReportShareServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>NativeReportServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.arreport.NativeReportServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>BirtReportServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.arwebreport.BirtReportServlet</servlet-class>
+        <load-on-startup>100</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>YellowFinReportServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.aryfreport.YellowFinReportServlet</servlet-class>
+        <load-on-startup>100</load-on-startup>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>AdminServlet</servlet-name>
+        <display-name>Axis Admin Servlet</display-name>
+        <servlet-class>org.apache.axis2.transport.http.AxisServlet</servlet-class>
+        <load-on-startup>100</load-on-startup>
+    </servlet>
+    <servlet>
+        <servlet-name>AxisServlet</servlet-name>
+        <display-name>Apache-Axis Servlet</display-name>
+        <servlet-class>org.apache.axis2.transport.http.AxisServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ProtectedWSDLServlet</servlet-name>
+        <display-name>Protected WSDL Servlet</display-name>
+        <servlet-class>com.remedy.arsys.ws.services.ProtectedWSDLServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>PluginServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.plugincontainer.impl.PluginServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>PluginEventServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.plugincontainer.impl.PluginEventServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>PublicWSDLServlet</servlet-name>
+        <display-name>Public WSDL Servlet</display-name>
+        <servlet-class>com.remedy.arsys.ws.services.PublicWSDLServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>FBImageServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.FBImageServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>FormServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.FormServlet</servlet-class>
+        <init-param>
+            <param-name>type</param-name>
+            <param-value>form</param-value>
+        </init-param>
+    </servlet>
+    <servlet>
+        <servlet-name>ApplicationServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.FormServlet</servlet-class>
+        <init-param>
+            <param-name>type</param-name>
+            <param-value>app</param-value>
+        </init-param>
+    </servlet>
+    <servlet>
+        <servlet-name>PublicApplicationServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.PublicApplicationServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ResourceServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.ResourceServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>SharedResourceServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.SharedResourceServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>BackchannelServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.BackchannelServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>CachedBackchannelServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.CachedBackchannelServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>ImageServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.ImageServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>HomeServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.HomeServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>AttachServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.AttachServlet</servlet-class>
+    </servlet>    
+    <servlet>
+        <servlet-name>OverrideServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.OverrideServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ViewFormServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.ViewFormServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>NotFoundServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.NotFoundServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>RedirToFedSrvServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.RedirToFedSrvServlet</servlet-class>
+    </servlet>
+    <servlet>
+	<servlet-name>BMCBorderServlet</servlet-name>
+	<servlet-class>com.remedy.arsys.border.BMCBorderServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ViewerServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.arwebreport.BIRTCustomViewerServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>EngineServlet</servlet-name>
+        <servlet-class>org.eclipse.birt.report.servlet.BirtEngineServlet</servlet-class>
+    </servlet>	
+   
+    <servlet>
+        <servlet-name>PingServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.PingServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>DoubleAuthServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.stubs.DoubleAuthServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ExternalLaunchPointServlet</servlet-name>
+        <servlet-class>com.remedy.arsys.external.launchpoint.ExternalLaunchPointServlet</servlet-class>
+    </servlet>
+    
+    <servlet>
+        <servlet-name>RESTServices</servlet-name>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+		<async-supported>true</async-supported>
+        <init-param>
+            <param-name>jersey.config.server.provider.classnames</param-name>
+            <param-value>org.glassfish.jersey.media.multipart.MultiPartFeature</param-value>
+        </init-param>
+        <init-param>
+            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-value>com.remedy.arsys.rest</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+	
+	<servlet>
+		<servlet-name>HelixGPTChatStream</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<async-supported>true</async-supported>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>HelixGPTChatStream</servlet-name>
+		<url-pattern>/web/api/*</url-pattern>
+	</servlet-mapping>
+		
+   
+    <servlet-mapping>
+        <servlet-name>ViewerServlet</servlet-name>
+        <url-pattern>/frameset</url-pattern>
+    </servlet-mapping>
+   
+    <servlet-mapping>
+        <servlet-name>ViewerServlet</servlet-name>
+        <url-pattern>/run</url-pattern>
+    </servlet-mapping>
+   
+    <servlet-mapping>
+        <servlet-name>EngineServlet</servlet-name>
+        <url-pattern>/preview</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EngineServlet</servlet-name>
+        <url-pattern>/download</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>EngineServlet</servlet-name>
+        <url-pattern>/parameter</url-pattern>
+    </servlet-mapping>   
+    <servlet-mapping>
+        <servlet-name>EngineServlet</servlet-name>
+        <url-pattern>/document</url-pattern>
+    </servlet-mapping>   
+    <servlet-mapping>
+        <servlet-name>EngineServlet</servlet-name>
+        <url-pattern>/output</url-pattern>
+    </servlet-mapping>   
+   
+    <servlet-mapping>
+        <servlet-name>EngineServlet</servlet-name>
+        <url-pattern>/extract</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>LoginServlet</servlet-name>
+        <url-pattern>/servlet/LoginServlet</url-pattern>
+    </servlet-mapping>
+	
+    <servlet-mapping>
+        <servlet-name>ResponseTimeServlet</servlet-name>
+        <url-pattern>/servlet/ResponseTimeServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>NotFoundServlet</servlet-name>
+        <url-pattern>/logs/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>LogoutServlet</servlet-name>
+        <url-pattern>/servlet/LogoutServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>LicenseReleaseServlet</servlet-name>
+        <url-pattern>/servlet/LicenseReleaseServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ConfigServlet</servlet-name>
+        <url-pattern>/servlet/ConfigServlet</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>GoatConfigServlet</servlet-name>
+        <url-pattern>/servlet/GoatConfigServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ReportServlet</servlet-name>
+        <url-pattern>/servlet/ReportServlet/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ReportShareServlet</servlet-name>
+        <url-pattern>/servlet/ReportShareServlet</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>ReportShareServlet</servlet-name>
+        <url-pattern>/smartreporting</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>NativeReportServlet</servlet-name>
+        <url-pattern>/servlet/NativeReportServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BirtReportServlet</servlet-name>
+        <url-pattern>/servlet/BirtReportServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>YellowFinReportServlet</servlet-name>
+        <url-pattern>/servlet/YellowFinReportServlet</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>AdminServlet</servlet-name>
+        <url-pattern>/servlet/AdminServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AxisServlet</servlet-name>
+        <url-pattern>/servlet/AxisServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AxisServlet</servlet-name>
+        <url-pattern>/services/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PluginServlet</servlet-name>
+        <url-pattern>/plugins/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PluginEventServlet</servlet-name>
+        <url-pattern>/pluginsignal/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>AxisServlet</servlet-name>
+        <url-pattern>*.jws</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PublicWSDLServlet</servlet-name>
+        <url-pattern>/WSDL/public/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>ProtectedWSDLServlet</servlet-name>
+        <url-pattern>/WSDL/protected/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FBImageServlet</servlet-name>
+        <url-pattern>/servlet/FBImageServlet</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>FormServlet</servlet-name>
+        <url-pattern>/forms/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ApplicationServlet</servlet-name>
+        <url-pattern>/apps/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>PublicApplicationServlet</servlet-name>
+        <url-pattern>/pubapps/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ResourceServlet</servlet-name>
+        <url-pattern>/resources/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>SharedResourceServlet</servlet-name>
+        <url-pattern>/sharedresources/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BackchannelServlet</servlet-name>
+        <url-pattern>/BackChannel/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CachedBackchannelServlet</servlet-name>
+        <url-pattern>/CachedBackChannel/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>ImageServlet</servlet-name>
+        <url-pattern>/imagepool/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>HomeServlet</servlet-name>
+        <url-pattern>/home</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>AttachServlet</servlet-name>
+        <url-pattern>/servlet/AttachServlet/*</url-pattern>
+    </servlet-mapping>    
+    <servlet-mapping>
+        <servlet-name>OverrideServlet</servlet-name>
+        <url-pattern>/servlet/OverrideServlet</url-pattern>
+    </servlet-mapping>
+	
+    <servlet-mapping>
+        <servlet-name>PingServlet</servlet-name>
+        <url-pattern>/servlet/PingServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ViewFormServlet</servlet-name>
+        <url-pattern>/servlet/ViewFormServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>RedirToFedSrvServlet</servlet-name>
+        <url-pattern>/servlet/RedirToFedSrvServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BMCBorderServlet</servlet-name>
+        <url-pattern>/bmc_border.gif</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>DoubleAuthServlet</servlet-name>
+        <url-pattern>/servlet/DoubleAuthServlet/*</url-pattern>
+    </servlet-mapping>
+   
+    <servlet-mapping>
+        <servlet-name>ExternalLaunchPointServlet</servlet-name>
+        <url-pattern>/launch/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>RESTServices</servlet-name>
+        <url-pattern>/web/*</url-pattern>
+    </servlet-mapping>
+    
+    <mime-mapping>
+        <extension>css</extension>
+        <mime-type>text/css</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>html</extension>
+        <mime-type>text/html</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>js</extension>
+        <mime-type>application/x-javascript</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>gif</extension>
+        <mime-type>image/gif</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>jpg</extension>
+        <mime-type>image/jpeg</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>jpeg</extension>
+        <mime-type>image/jpeg</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>vsd</extension>
+        <mime-type>application/x-visio</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>vst</extension>
+        <mime-type>application/x-visio</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>vsw</extension>
+        <mime-type>application/x-visio</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>vss</extension>
+        <mime-type>application/x-visio</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>GIF</extension>
+        <mime-type>image/gif</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>JPG</extension>
+        <mime-type>image/jpeg</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>JPEG</extension>
+        <mime-type>image/jpeg</mime-type>
+    </mime-mapping>
+	<mime-mapping>
+        <extension>swf</extension>
+        <mime-type>application/x-shockwave-flash</mime-type>
+    </mime-mapping>
+    <welcome-file-list>
+    	<welcome-file>home</welcome-file>
+	<welcome-file>index.html</welcome-file>
+    </welcome-file-list>    
+    <error-page>
+        <error-code>404</error-code>
+        <location>/shared/file_not_found.jsp</location>
+    </error-page>
+    <taglib>
+        <taglib-uri>/birt.tld</taglib-uri>
+        <taglib-location>/WEB-INF/tlds/birt.tld</taglib-location>
+    </taglib>
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>restricted methods</web-resource-name>
+			<url-pattern>/*</url-pattern>
+			<http-method-omission>GET</http-method-omission>
+			<http-method-omission>POST</http-method-omission>
+			<http-method-omission>HEAD</http-method-omission>
+			<http-method-omission>CONNECT</http-method-omission>
+		</web-resource-collection>
+		<auth-constraint/>
+	</security-constraint>
+	
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>denydocs</web-resource-name>
+			<url-pattern>/Documentation/*</url-pattern>                
+			<url-pattern>/reporting/*</url-pattern>
+			<url-pattern>/Visualizer/*</url-pattern> 
+			<url-pattern>/documents/*</url-pattern>                
+			<url-pattern>/flashboards/*</url-pattern>
+			<url-pattern>/GraphicalReport/*</url-pattern> 
+			<url-pattern>/LocalPlugins/*</url-pattern>                
+			<url-pattern>/mapper/*</url-pattern>
+			<url-pattern>/PluginEventTester/*</url-pattern> 
+			<url-pattern>/RSSFeed/*</url-pattern>  
+			<url-pattern>/shared/config/MidDefaultConfigSettings.arx</url-pattern>
+			<url-pattern>/reports/*</url-pattern>
+			<url-pattern>/attstore/*</url-pattern>
+			<url-pattern>/cache/*</url-pattern>
+			<url-pattern>/filedeployer/*</url-pattern>
+			<url-pattern>/scriptlib/*</url-pattern>
+			<url-pattern>/tools/*</url-pattern>			
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>*</role-name>
+		</auth-constraint>
+	</security-constraint>
+</web-app>

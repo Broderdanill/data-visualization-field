@@ -18,9 +18,9 @@ public class RestPlugin implements Plugin {
             pc.getResponse().setHeader("Cache-Control", "no-cache");
             pc.getResponse().setHeader("Content-Disposition", "inline");
             PrintWriter out = pc.getResponse().getWriter();
-            out.print("{ \"name\": \"RestFetch\", \"version\": \"1.0.3\", \"type\": \"Visualizer\", " +
-                    "\"description\": \"REST Fetch test plugin\", \"author\": \"AR Plugin\", " +
-                    "\"parameters\": [\"urlField\", \"targetField\"] }");
+            out.print("{ \"name\": \"RestFetch\", \"version\": \"1.0.9\", \"type\": \"Visualizer\", " +
+                      "\"description\": \"REST Fetch test plugin\", \"author\": \"AR Plugin\", " +
+                      "\"parameters\": [\"urlField\", \"targetField\"] }");
             return;
         }
 
@@ -32,21 +32,17 @@ public class RestPlugin implements Plugin {
         PrintWriter out = pc.getResponse().getWriter();
 
         out.println("<html><head>");
-        out.println("<script type='text/javascript' src='/arsys/resources/scripts/eventdispatcher.js'></script>");
         out.println("<script type='text/javascript'>");
-
+        out.println(pc.getPageService().getEventInfrastructureCode());
         out.println("function tryInitDispatcher() {");
         out.println("  if (typeof EventDispatcher === 'undefined') {");
         out.println("    console.warn('EventDispatcher not yet loaded. Retrying...');");
         out.println("    setTimeout(tryInitDispatcher, 100);");
         out.println("    return;");
         out.println("  }");
-
-        // Sätt parent-origin från referer
-        out.println("  var origin = document.referrer.split('/').slice(0, 3).join('/');");
+        out.println("  var origin = window.parent.location.origin;");
         out.println("  console.log('Setting parent origin to', origin);");
         out.println("  EventDispatcher.setParentOrigin(origin);");
-
         out.println("  EventDispatcher.subscribe('TriggerFetch', function(url) {");
         out.println("    console.log('TriggerFetch received with URL:', url);");
         out.println("    EventDispatcher.sendEventToMidTier('FetchURL', url).then(js => {");
@@ -58,7 +54,6 @@ public class RestPlugin implements Plugin {
         out.println("    });");
         out.println("  });");
         out.println("}");
-
         out.println("tryInitDispatcher();");
         out.println("</script>");
         out.println("</head><body>");
