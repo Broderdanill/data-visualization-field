@@ -1,0 +1,21 @@
+<div>
+    <input type="text" id="url" value="http://localhost:8008/api/arsys/v1/entry/User" size="80"/>
+    <button onclick="relay()">Send Relay</button>
+    <pre id="result"></pre>
+  </div>
+  
+  <script>
+  async function relay() {
+    const jwt = window.ARJWTToken || ""; // eller hämta från hidden field
+    const url = document.getElementById("url").value;
+  
+    if (!jwt || !url) return alert("Missing JWT or URL");
+  
+    const relayUrl = `/arsys/plugins/JwtRelayPlugin?jwt=${encodeURIComponent(jwt)}&url=${encodeURIComponent(url)}`;
+    const res = await fetch(relayUrl);
+    const json = await res.text();
+  
+    document.getElementById("result").textContent = json;
+  }
+  </script>
+  
