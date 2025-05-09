@@ -21,14 +21,13 @@ public class RestFetcherPlugin implements Plugin {
             pc.getResponse().setHeader("Content-Disposition", "inline");
 
             PrintWriter out = pc.getResponse().getWriter();
-            out.print("{ \"name\": \"RestFetcher\", \"version\": \"1.0.16\", \"type\": \"Visualizer\", " +
-                    "\"description\": \"Plugin that fetches REST data\", \"author\": \"AR Plugin\", " +
-                    "\"parameters\": [\"urlField\", \"targetField\"] }");
+            out.print("{ \"name\": \"RestFetcher\", \"version\": \"1.0.19\", \"type\": \"Visualizer\", " +
+                      "\"description\": \"Plugin that fetches REST data\", \"author\": \"AR Plugin\", " +
+                      "\"parameters\": [\"urlField\", \"targetField\"] }");
             out.flush();
             return;
         }
 
-        // Default HTML rendering (iframe)
         pc.getResponse().setContentType("text/html;charset=UTF-8");
         pc.getResponse().setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
         pc.getResponse().setHeader("Pragma", "no-cache");
@@ -39,27 +38,53 @@ public class RestFetcherPlugin implements Plugin {
 
         out.println("<!DOCTYPE html>");
         out.println("<html><head><meta charset='UTF-8'>");
-        out.println("<script type='text/javascript'>");
+
+        // BMC infrastructure
         out.println(pc.getPageService().getEventInfrastructureCode());
+
+        // JS
+        out.println("<script type='text/javascript'>");
         out.println("function init() {");
-        out.println("  if (typeof EventDispatcher === 'undefined') {");
-        out.println("    console.warn('EventDispatcher not ready. Retrying...');");
-        out.println("    setTimeout(init, 200); return;");
-        out.println("  }");
         out.println("  var origin = document.referrer.split('/').slice(0,3).join('/');");
         out.println("  console.log('[RestFetcher] Setting parent origin:', origin);");
-        out.println("  EventDispatcher.setParentOrigin(origin);");
-        out.println("  EventDispatcher.subscribe('TriggerFetch', function(url) {");
+
+        out.println("  if (typeof EventDispatcher !== 'undefined' && typeof EventDispatcher.setParentOrigin === 'function') {");
+        out.println("    EventDispatcher.setParentOrigin(origin);");
+        out.println("  } else {");
+        out.println("    console.warn('[RestFetcher] setParentOrigin not available. Skipping.');");
+        out.println("  }");
+
+        // Handle internal event
+        out.println("  window.addEventListener('arEvent', function(e) {");
+        out.println("    if (!e || !e.detail || e.detail.eventName !== 'TriggerFetch') return;");
+        out.println("    const url = e.detail.data;");
         out.println("    console.log('[RestFetcher] TriggerFetch received:', url);");
-        out.println("    EventDispatcher.sendEventToMidTier('FetchURL', url).then(js => {");
-        out.println("      try { eval(js); } catch(e) { console.error('Eval error:', e); }");
-        out.println("    });");
+        out.println("    if (typeof EventDispatcher !== 'undefined' && typeof EventDispatcher.sendEventToMidTier === 'function') {");
+        out.println("      EventDispatcher.sendEventToMidTier('FetchURL', url).then(js => {");
+        out.println("        try { eval(js); } catch(err) {");
+        out.println("          console.error('Eval error:', err);");
+        out.println("          document.getElementById('output').innerText = 'Error: ' + err;");
+        out.println("        }");
+        out.println("      });");
+        out.println("    } else {");
+        out.println("      console.error('EventDispatcher.sendEventToMidTier is not available');");
+        out.println("    }");
         out.println("  });");
+        out.println("}");
+
+        // Manual test trigger
+        out.println("function triggerFetch() {");
+        out.println("  const url = document.getElementById('fetchUrl').value;");
+        out.println("  const event = new CustomEvent('arEvent', { detail: { eventName: 'TriggerFetch', data: url } });");
+        out.println("  window.dispatchEvent(event);");
         out.println("}");
         out.println("window.addEventListener('load', init);");
         out.println("</script>");
         out.println("</head><body>");
-        out.println("<div>RestFetcher is loaded and ready.</div>");
+        out.println("<h3>RestFetcher is loaded and ready.</h3>");
+        out.println("<input type='text' id='fetchUrl' value='https://jsonplaceholder.typicode.com/todos/1' style='width:80%' />");
+        out.println("<button onclick='triggerFetch()'>Fetch Now</button>");
+        out.println("<pre id='output'></pre>");
         out.println("</body></html>");
         out.flush();
     }
@@ -67,7 +92,6 @@ public class RestFetcherPlugin implements Plugin {
     @Override
     public String handleEvent(PluginContext pc, String eventType, String eventData) {
         System.out.println(">> handleEvent: " + eventType + " with data: " + eventData);
-
         if (!"FetchURL".equals(eventType)) return "";
 
         String json = callExternalAPI(eventData);
