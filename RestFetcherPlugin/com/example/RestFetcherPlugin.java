@@ -13,61 +13,55 @@ public class RestFetcherPlugin implements Plugin {
         String path = pc.getRequest().getPathInfo();
         System.out.println(">> RestFetcherPlugin.processRequest path = " + path);
 
-        // TEMP: return definition JSON om path innehåller "params"
-        if (path != null && path.contains("/params")) {
+        if ("/params".equals(path)) {
             pc.getResponse().setContentType("application/json");
-            pc.getResponse().setHeader("Cache-Control", "no-cache");
+            pc.getResponse().setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            pc.getResponse().setHeader("Pragma", "no-cache");
+            pc.getResponse().setHeader("Expires", "0");
             pc.getResponse().setHeader("Content-Disposition", "inline");
+
             PrintWriter out = pc.getResponse().getWriter();
-            out.print("{ \"name\": \"RestFetcher\", \"version\": \"1.0.11\", \"type\": \"Visualizer\", " +
-                      "\"description\": \"Plugin that fetches REST data\", \"author\": \"AR Plugin\", " +
-                      "\"parameters\": [\"urlField\", \"targetField\"] }");
+            out.print("{ \"name\": \"RestFetcher\", \"version\": \"1.0.16\", \"type\": \"Visualizer\", " +
+                    "\"description\": \"Plugin that fetches REST data\", \"author\": \"AR Plugin\", " +
+                    "\"parameters\": [\"urlField\", \"targetField\"] }");
+            out.flush();
             return;
         }
 
-        // Standard HTML-rendering
+        // Default HTML rendering (iframe)
         pc.getResponse().setContentType("text/html;charset=UTF-8");
-        pc.getResponse().setHeader("Cache-Control", "no-cache");
+        pc.getResponse().setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        pc.getResponse().setHeader("Pragma", "no-cache");
+        pc.getResponse().setHeader("Expires", "0");
         pc.getResponse().setHeader("Content-Disposition", "inline");
 
         PrintWriter out = pc.getResponse().getWriter();
 
-        out.println("<html><head>");
-        out.println("<title>RestFetcher Plugin</title>");
-
-        // Försök ladda EventDispatcher (ibland behövs detta extra)
-        out.println("<script type='text/javascript' src='/arsys/resources/scripts/eventdispatcher.js'></script>");
+        out.println("<!DOCTYPE html>");
+        out.println("<html><head><meta charset='UTF-8'>");
         out.println("<script type='text/javascript'>");
-
-        out.println("console.log('[RestFetcher] Init script running');");
-
-        out.println("function tryInitDispatcher() {");
+        out.println(pc.getPageService().getEventInfrastructureCode());
+        out.println("function init() {");
         out.println("  if (typeof EventDispatcher === 'undefined') {");
-        out.println("    console.warn('EventDispatcher NOT ready. Retrying...');");
-        out.println("    setTimeout(tryInitDispatcher, 200);");
-        out.println("    return;");
+        out.println("    console.warn('EventDispatcher not ready. Retrying...');");
+        out.println("    setTimeout(init, 200); return;");
         out.println("  }");
-        out.println("  const origin = document.referrer.split('/').slice(0,3).join('/');");
+        out.println("  var origin = document.referrer.split('/').slice(0,3).join('/');");
+        out.println("  console.log('[RestFetcher] Setting parent origin:', origin);");
         out.println("  EventDispatcher.setParentOrigin(origin);");
-        out.println("  console.log('[RestFetcher] Set parentOrigin to', origin);");
-
         out.println("  EventDispatcher.subscribe('TriggerFetch', function(url) {");
-        out.println("    console.log('[RestFetcher] Received TriggerFetch with URL:', url);");
+        out.println("    console.log('[RestFetcher] TriggerFetch received:', url);");
         out.println("    EventDispatcher.sendEventToMidTier('FetchURL', url).then(js => {");
-        out.println("      try { eval(js); } catch(e) {");
-        out.println("        document.body.innerHTML += '<pre style=\"color:red\">' + e + '</pre>'; ");
-        out.println("        console.error('Eval error:', e);");
-        out.println("      }");
+        out.println("      try { eval(js); } catch(e) { console.error('Eval error:', e); }");
         out.println("    });");
         out.println("  });");
         out.println("}");
-        out.println("tryInitDispatcher();");
-
+        out.println("window.addEventListener('load', init);");
         out.println("</script>");
         out.println("</head><body>");
-        out.println("<h1 style='color:green;'>HELLO FROM RestFetcherPlugin</h1>");
-        out.println("<div>Waiting for REST fetch trigger...</div>");
+        out.println("<div>RestFetcher is loaded and ready.</div>");
         out.println("</body></html>");
+        out.flush();
     }
 
     @Override
@@ -90,9 +84,7 @@ public class RestFetcherPlugin implements Plugin {
         try (InputStream in = new URL(url).openStream()) {
             return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            String err = "{\"error\": \"" + e.getMessage().replace("\"", "'") + "\"}";
-            System.err.println(">> REST fetch error: " + err);
-            return err;
+            return "{\"error\": \"" + e.getMessage().replace("\"", "'") + "\"}";
         }
     }
 
