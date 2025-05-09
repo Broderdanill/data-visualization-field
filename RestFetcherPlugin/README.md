@@ -1,8 +1,8 @@
-# A. Kompilera
+# 1. Kompilera
 javac --release 17 -cp "../api/*" com/example/RestFetcherPlugin.java
 jar cf RestFetcherPlugin.jar com/example/*.class
 
-# B. Registrera plugin
+# 2. Registrera plugin
 I formuläret Data Visualization Module:
     Module Name: RestFetcher
     Module Type: Visualizer
@@ -10,12 +10,8 @@ I formuläret Data Visualization Module:
     Status: Enabled
     Module Code: Ladda upp RestFetcher.jar
 
-# C. Skapa ingen Data Visualization Definition – eftersom vi använder View Field, inte DVF.
+# 3. Importera Demoformulär
+    Importera formulär i Developer Studio
 
-
-# Test
-Lägg View Field i ditt Progressive View-formulär.
-
-Tryck på knappen.
-
-Bekräfta att du får svaret från url med aktuell användares JWT-token i AR-JWT.
+# 4. Testa
+    Test görs genom att....

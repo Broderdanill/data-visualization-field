@@ -21,7 +21,7 @@ public class RestFetcherPlugin implements Plugin {
             pc.getResponse().setHeader("Content-Disposition", "inline");
 
             PrintWriter out = pc.getResponse().getWriter();
-            out.print("{ \"name\": \"RestFetcher\", \"version\": \"1.0.19\", \"type\": \"Visualizer\", " +
+            out.print("{ \"name\": \"RestFetcher\", \"version\": \"1.0.21\", \"type\": \"Visualizer\", " +
                       "\"description\": \"Plugin that fetches REST data\", \"author\": \"AR Plugin\", " +
                       "\"parameters\": [\"urlField\", \"targetField\"] }");
             out.flush();
@@ -39,46 +39,30 @@ public class RestFetcherPlugin implements Plugin {
         out.println("<!DOCTYPE html>");
         out.println("<html><head><meta charset='UTF-8'>");
 
-        // Include BMC event infrastructure
         out.println(pc.getPageService().getEventInfrastructureCode());
 
-        // JavaScript to handle event
         out.println("<script type='text/javascript'>");
         out.println("function init() {");
         out.println("  var origin = document.referrer.split('/').slice(0,3).join('/');");
-        out.println("  console.log('[RestFetcher] Setting parent origin:', origin);");
-
         out.println("  if (typeof EventDispatcher !== 'undefined' && typeof EventDispatcher.setParentOrigin === 'function') {");
         out.println("    EventDispatcher.setParentOrigin(origin);");
-        out.println("  } else {");
-        out.println("    console.warn('[RestFetcher] setParentOrigin not available. Skipping.');");
         out.println("  }");
 
-        // Listen for event from Active Link
         out.println("  window.addEventListener('arEvent', function(e) {");
         out.println("    if (!e || !e.detail || e.detail.eventName !== 'TriggerFetch') return;");
         out.println("    const url = e.detail.data;");
-        out.println("    console.log('[RestFetcher] TriggerFetch received:', url);");
-
         out.println("    if (typeof EventDispatcher !== 'undefined' && typeof EventDispatcher.sendEventToMidTier === 'function') {");
-        out.println("      EventDispatcher.sendEventToMidTier('FetchURL', url, function(js) {");
-        out.println("        try { eval(js); } catch(err) {");
-        out.println("          console.error('Eval error:', err);");
-        out.println("          document.getElementById('output').innerText = 'Error: ' + err;");
-        out.println("        }");
+        out.println("      EventDispatcher.sendEventToMidTier('FetchURL', url).then(js => {");
+        out.println("        try { eval(js); } catch(err) { console.error('Eval error:', err); }");
         out.println("      });");
-        out.println("    } else {");
-        out.println("      console.error('EventDispatcher.sendEventToMidTier is not available');");
         out.println("    }");
         out.println("  });");
         out.println("}");
-
         out.println("window.addEventListener('load', init);");
         out.println("</script>");
 
         out.println("</head><body>");
-        out.println("<h3>RestFetcher is loaded and ready.</h3>");
-        out.println("<div id='output'></div>");
+        out.println("<div>RestFetcher is ready.</div>");
         out.println("</body></html>");
         out.flush();
     }
@@ -86,18 +70,18 @@ public class RestFetcherPlugin implements Plugin {
     @Override
     public String handleEvent(PluginContext pc, String eventType, String eventData) {
         System.out.println(">> handleEvent: " + eventType + " with data: " + eventData);
-    
+
         if (!"FetchURL".equals(eventType)) return "";
-    
+
         String json = callExternalAPI(eventData);
         String escaped = json
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"")
                 .replace("\n", "")
                 .replace("\r", "");
-    
-        // Skicka värdet direkt till ett formulärfält (1225050901)
-        return "ARSetFieldValue(null, \"1225050901\", \"" + escaped + "\");";
+
+        // Här skickas värdet tillbaka till fält ID 1225050901
+        return "EventDispatcher.sendEventToParentField(1225050901, \"" + escaped + "\");";
     }
 
     private String callExternalAPI(String url) {
