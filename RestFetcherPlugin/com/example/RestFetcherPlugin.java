@@ -86,16 +86,18 @@ public class RestFetcherPlugin implements Plugin {
     @Override
     public String handleEvent(PluginContext pc, String eventType, String eventData) {
         System.out.println(">> handleEvent: " + eventType + " with data: " + eventData);
+    
         if (!"FetchURL".equals(eventType)) return "";
-
+    
         String json = callExternalAPI(eventData);
         String escaped = json
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("\n", "")
-            .replace("\r", "");
-
-        return "EventDispatcher.sendEventToParent(\"RestResult\", \"" + escaped + "\");";
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "")
+                .replace("\r", "");
+    
+        // Skicka värdet direkt till ett formulärfält (1225050901)
+        return "ARSetFieldValue(null, \"1225050901\", \"" + escaped + "\");";
     }
 
     private String callExternalAPI(String url) {
