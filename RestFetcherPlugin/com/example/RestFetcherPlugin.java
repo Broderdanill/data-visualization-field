@@ -21,9 +21,9 @@ public class RestFetcherPlugin implements Plugin {
             pc.getResponse().setHeader("Content-Disposition", "inline");
 
             PrintWriter out = pc.getResponse().getWriter();
-            out.print("{ \"name\": \"RestFetcher\", \"version\": \"1.0.21\", \"type\": \"Visualizer\", " +
-                      "\"description\": \"Plugin that fetches REST data\", \"author\": \"AR Plugin\", " +
-                      "\"parameters\": [\"urlField\", \"targetField\"] }");
+            out.print("{ \"name\": \"RestFetcher\", \"version\": \"1.0.22\", \"type\": \"Visual\", " +
+                    "\"description\": \"Plugin that fetches REST data\", \"author\": \"AR Plugin\", " +
+                    "\"parameters\": [\"urlField\", \"targetField\"] }");
             out.flush();
             return;
         }
@@ -39,30 +39,52 @@ public class RestFetcherPlugin implements Plugin {
         out.println("<!DOCTYPE html>");
         out.println("<html><head><meta charset='UTF-8'>");
 
+        // Inkluderar Mid Tier-eventstödet
         out.println(pc.getPageService().getEventInfrastructureCode());
 
+        // JS som diagnostiserar vad som finns tillgängligt
         out.println("<script type='text/javascript'>");
         out.println("function init() {");
-        out.println("  var origin = document.referrer.split('/').slice(0,3).join('/');");
-        out.println("  if (typeof EventDispatcher !== 'undefined' && typeof EventDispatcher.setParentOrigin === 'function') {");
-        out.println("    EventDispatcher.setParentOrigin(origin);");
-        out.println("  }");
+        out.println("  console.log('[RestFetcher] INIT start');");
 
-        out.println("  window.addEventListener('arEvent', function(e) {");
-        out.println("    if (!e || !e.detail || e.detail.eventName !== 'TriggerFetch') return;");
-        out.println("    const url = e.detail.data;");
-        out.println("    if (typeof EventDispatcher !== 'undefined' && typeof EventDispatcher.sendEventToMidTier === 'function') {");
-        out.println("      EventDispatcher.sendEventToMidTier('FetchURL', url).then(js => {");
-        out.println("        try { eval(js); } catch(err) { console.error('Eval error:', err); }");
-        out.println("      });");
+        out.println("  var origin = document.referrer.split('/').slice(0,3).join('/');");
+        out.println("  console.log('[RestFetcher] Referrer origin:', origin);");
+
+        out.println("  if (typeof EventDispatcher !== 'undefined') {");
+        out.println("    console.log('[RestFetcher] EventDispatcher FOUND');");
+        out.println("    console.log('[RestFetcher] Available methods on EventDispatcher:', Object.keys(EventDispatcher));");
+
+        out.println("    if (typeof EventDispatcher.setParentOrigin === 'function') {");
+        out.println("      EventDispatcher.setParentOrigin(origin);");
+        out.println("    } else {");
+        out.println("      console.warn('[RestFetcher] setParentOrigin() not available');");
         out.println("    }");
-        out.println("  });");
+
+        out.println("    if (typeof EventDispatcher.subscribe === 'function') {");
+        out.println("      EventDispatcher.subscribe('TriggerFetch', function(url) {");
+        out.println("        console.log('[RestFetcher] TriggerFetch received:', url);");
+        out.println("        EventDispatcher.sendEventToMidTier('FetchURL', url).then(js => {");
+        out.println("          try { eval(js); } catch(err) {");
+        out.println("            console.error('[RestFetcher] Eval error:', err);");
+        out.println("            document.getElementById('output').innerText = 'Error: ' + err;");
+        out.println("          }");
+        out.println("        });");
+        out.println("      });");
+        out.println("    } else {");
+        out.println("      console.warn('[RestFetcher] subscribe() not available');");
+        out.println("    }");
+
+        out.println("  } else {");
+        out.println("    console.warn('[RestFetcher] EventDispatcher NOT available');");
+        out.println("  }");
         out.println("}");
+
         out.println("window.addEventListener('load', init);");
         out.println("</script>");
 
         out.println("</head><body>");
-        out.println("<div>RestFetcher is ready.</div>");
+        out.println("<h3>RestFetcher is ready.</h3>");
+        out.println("<div id='output'></div>");
         out.println("</body></html>");
         out.flush();
     }
@@ -80,7 +102,7 @@ public class RestFetcherPlugin implements Plugin {
                 .replace("\n", "")
                 .replace("\r", "");
 
-        // Här skickas värdet tillbaka till fält ID 1225050901
+        // Returnerar JSON till fält 1225050901
         return "EventDispatcher.sendEventToParentField(1225050901, \"" + escaped + "\");";
     }
 
@@ -99,12 +121,11 @@ public class RestFetcherPlugin implements Plugin {
     public DefinitionFactory getDefinitionFactory() {
         return new DefinitionFactory() {
             @Override
-            public Definition createFromString(PluginContext context, DefinitionKey key, String defJson) throws IOException {
+            public Definition createFromString(PluginContext context, DefinitionKey key, String defJson) {
                 return null;
             }
-
             @Override
-            public Definition createFromStream(PluginContext context, DefinitionKey key, InputStream stream) throws IOException {
+            public Definition createFromStream(PluginContext context, DefinitionKey key, InputStream stream) {
                 return null;
             }
         };
